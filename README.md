@@ -67,7 +67,7 @@ tedious to tease apart the optimization from the duplicated code,
 however.  For example:
 
 ```c++
-void process_image_contents(char *data) {
+void process_image_contents(int width, int height, char *data) {
   if (width == 4000 && height == 3000) {
     for (int i = 0; i < 3000; i++) {
       // do some row preparations.
@@ -93,7 +93,7 @@ pixel processing can take advantage of the known sizes?  We could
 write this:
 
 ```c++
-void process_image_contents(char *data) {
+void process_image_contents(int width, int height, char *data) {
   for (int i = 0; i < 3000; i++) {
     // do some row preparations.
     for (int j = 0; j < 4000; j++) {

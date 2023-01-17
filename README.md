@@ -54,7 +54,7 @@ void process_image(int width, int height, char *data) {
   process_image_headers(width, height, data);
 
   if (width == 4000 && height == 3000) {
-    process_image_contents_4000x3000(char *data);
+    process_image_contents_4000x3000(data);
   } else {
     process_image_contents(width, height, data);
   }

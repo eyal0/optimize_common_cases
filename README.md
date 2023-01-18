@@ -27,9 +27,9 @@ void process_image_helper_4000x3000(char *data);
 
 void process_image(int width, int height, char *data) {
   if (width == 4000 && height == 3000) {
-    process_image_helper_4000x3000(char *data);
+    process_image_helper_4000x3000(data); // *** specialized
   } else {
-    process_image_helper(width, height, data);
+    process_image_helper(width, height, data); // *** regular
   }
 }
 ```
@@ -51,12 +51,12 @@ void process_image_contents_4000x3000(char *data);
 
 void process_image(int width, int height, char *data) {
   // No optimizations in the headers.
-  process_image_headers(width, height, data);
+  process_image_headers(width, height, data); // *** common
 
   if (width == 4000 && height == 3000) {
-    process_image_contents_4000x3000(data);
+    process_image_contents_4000x3000(data); // *** specialized
   } else {
-    process_image_contents(width, height, data);
+    process_image_contents(width, height, data); // *** regular
   }
 }
 ```
@@ -68,7 +68,8 @@ however.  For example:
 
 ```c++
 void process_image_contents(int width, int height, char *data) {
-  if (width == 4000 && height == 3000) {
+  if (width == 4000 && height == 3000) { // *** branch early
+    // *** specialized
     for (int i = 0; i < 3000; i++) {
       // do some row preparations.
       for (int j = 0; j < 4000; j++) {
@@ -77,6 +78,7 @@ void process_image_contents(int width, int height, char *data) {
       }
     }
   } else {
+    // *** regular
     for (int i = 0; i < height; i++) {
       // do some row preparations.
       for (int j = 0; j < width; j++) {
@@ -98,7 +100,7 @@ void process_image_contents(int width, int height, char *data) {
     // do some row preparations.
     for (int j = 0; j < 4000; j++) {
       // do some height preparations.
-      if (width == 4000 && height == 3000) {
+      if (width == 4000 && height == 3000) { // *** branch later
         // do the *optimized* pixel processing.
       } else {
         // do the regular pixel processing.
@@ -127,9 +129,9 @@ And now we can write our code like this:
 ```c++
 void process_image(int width, int height, char *data) {
   if (width == 4000 && height == 3000) {
-    process_image_helper<4000, 3000>(data);
+    process_image_helper<4000, 3000>(data); // *** specialized
   } else {
-    process_image_helper(width, height, data);
+    process_image_helper(width, height, data); // *** regular
   }
 }
 ```
@@ -142,8 +144,8 @@ templated function to look something like this:
 _Z20process_image_helperILi4000ELi3000EEvv
 ```
 
-Just as we made a function with a specialized name that included
-`4000` and `3000`, so did the compiler.
+Just as we made a function with the name `4000x3000`, the compiler
+made a function with the name `ILi4000ELi3000EEvv`.
 
 ### Optimizer
 
@@ -163,7 +165,8 @@ void process_image(int width, int height, char *data) {
 
 In both branches we have same code!  We might expect the compiler to
 optimize away the `if` branch but it seems that the compiler will
-optimize the function inside instead.  Here's some example code:
+optimize the function inside instead.  Here's some example code for
+computing a sum of consecutive integers:
 
 ```c++
 #include <cmath>
@@ -277,8 +280,8 @@ main:                                   # @main
         call    getSum(double)@PLT
 ```
 
-If `getSum` can't be in the same compilation unit as the caller, we
-should declare it with a helper like this:
+To prevent the caller from accidentally missing out on the optimization, we
+should declare `getSum` with a helper like this:
 
 ```c++
 #include <cmath>

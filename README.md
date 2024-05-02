@@ -111,7 +111,7 @@ void process_image_contents(int width, int height, char *data) {
 ```
 
 Now we have less code duplication, which is good.  But the `if` branch
-is getting run at each iteration, which will be slow!
+is getting run at each iteration, which will be slow!  (In practice, the compiler can realize that `width` and `height` are constant throughout the function and maybe speed things up a bit but you might still have a branch in the loop.)
 
 ### Templating
 
